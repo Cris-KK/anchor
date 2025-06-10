@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.reward.audience.mapper.RewardRecordMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="RewardRecordMap" type="RewardRecord">
+        <id column="id" property="id"/>
+        <result column="record_id" property="recordId"/>
+        <result column="audience_id" property="audienceId"/>
+        <result column="anchor_id" property="anchorId"/>
+        <result column="amount" property="amount"/>
+        <result column="reward_time" property="rewardTime"/>
+        <result column="sync_status" property="syncStatus"/>
+        <result column="sync_retry_count" property="syncRetryCount"/>
+        <result column="trace_id" property="traceId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <resultMap id="TopAudienceMap" type="TopAudienceVO">
+        <result column="audience_id" property="audienceId"/>
+        <result column="nickname" property="nickname"/>
+        <result column="total_amount" property="totalAmount"/>
+        <result column="reward_count" property="rewardCount"/>
+        <result column="ranking" property="ranking"/>
+    </resultMap>
+
+    <!-- 插入打赏记录 -->
+    <insert id="insert" parameterType="RewardRecord">
+        INSERT INTO reward_record (
+            record_id, audience_id, anchor_id, amount, reward_time,
+            sync_status, sync_retry_count, trace_id
+        ) VALUES (
+                     #{recordId}, #{audienceId}, #{anchorId}, #{amount}, #{rewardTime},
+                     #{syncStatus}, #{syncRetryCount}, #{traceId}
+                 )
+    </insert>
+
+    <!-- 根据recordId查询 -->
+    <select id="selectByRecordId" parameterType="string" resultMap="RewardRecordMap">
+        SELECT * FROM reward_record WHERE record_id = #{recordId}
+    </select>
+
+    <!-- 查询主播TOP10观众 -->
+    <select id="selectTop10ByAnchorId" parameterType="string" resultMap="TopAudienceMap">
+        SELECT
+            t.audience_id,
+            a.nickname,
+            t.total_amount,
+            t.reward_count,
+            ROW_NUMBER() OVER (ORDER BY t.total_amount DESC) as ranking
+        FROM (
+                 SELECT
+                     audience_id,
+                     SUM(amount) as total_amount,
+                     COUNT(*) as reward_count
+                 FROM reward_record
+                 WHERE anchor_id = #{anchorId}
+                 GROUP BY audience_id
+                 ORDER BY total_amount DESC
+                     LIMIT 10
+             ) t
+                 LEFT JOIN audience a ON t.audience_id = a.audience_id
+    </select>
+
+    <!-- 更新同步状态 -->
+    <update id="updateSyncStatus">
+        UPDATE reward_record
+        SET sync_status = #{syncStatus}, update_time = NOW()
+        WHERE record_id = #{recordId}
+    </update>
+
+    <!-- 更新同步状态和重试次数 -->
+    <update id="updateSyncStatusWithRetry">
+        UPDATE reward_record
+        SET sync_status = #{syncStatus},
+            sync_retry_count = #{retryCount},
+            update_time = NOW()
+        WHERE record_id = #{recordId}
+    </update>
+
+    <!-- 查询同步失败的记录 -->
+    <select id="findFailedSyncRecords" resultMap="RewardRecordMap">
+        SELECT * FROM reward_record
+        WHERE sync_status = 2
+          AND sync_retry_count &lt; #{maxRetryCount}
+        ORDER BY create_time ASC
+            LIMIT #{limit}
+    </select>
+
+    <!-- 查询未同步的记录 -->
+    <select id="findUnsyncedRecords" resultMap="RewardRecordMap">
+        SELECT * FROM reward_record
+        WHERE sync_status = 0
+        ORDER BY create_time ASC
+            LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 查询观众统计信息 -->
+    <select id="getAudienceStats" parameterType="string" resultType="map">
+        SELECT
+            COUNT(*) as totalRewards,
+            COALESCE(SUM(amount), 0) as totalAmount,
+            COALESCE(AVG(amount), 0) as avgAmount,
+            COALESCE(MAX(amount), 0) as maxAmount,
+            COALESCE(MIN(amount), 0) as minAmount,
+            COUNT(DISTINCT anchor_id) as anchorCount
+        FROM reward_record
+        WHERE audience_id = #{audienceId}
+    </select>
+
+    <!-- 按条件查询打赏记录 -->
+    <select id="selectByCondition" resultMap="RewardRecordMap">
+        SELECT * FROM reward_record
+        WHERE 1=1
+        <if test="audienceId != null and audienceId != ''">
+            AND audience_id = #{audienceId}
+        </if>
+        <if test="anchorId != null and anchorId != ''">
+            AND anchor_id = #{anchorId}
+        </if>
+        ORDER BY reward_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+</mapper>

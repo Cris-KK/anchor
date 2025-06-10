@@ -1,0 +1,14 @@
+# 公共模块配置
+logging:
+  level:
+    com.reward: DEBUG
+  pattern:
+    console: "[%X{traceId:-}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+    file: "[%X{traceId:-}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+
+# Jackson配置
+spring:
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+    default-property-inclusion: non_null

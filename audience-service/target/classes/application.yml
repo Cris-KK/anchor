@@ -1,0 +1,73 @@
+server:
+  port: 8091
+
+spring:
+  application:
+    name: audience-service
+  
+  # 数据库配置 - 连接到audience_db（DB1）
+  datasource:
+    url: jdbc:mysql://localhost:3306/audience_db?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+    username: root
+    password: Lyyjya200401297
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-test-query: SELECT 1
+
+  # Jackson配置
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+    default-property-inclusion: non_null
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.reward.audience.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: true
+    lazy-loading-enabled: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# 业务配置
+audience:
+  reward:
+    max-amount: 10000          # 最大打赏金额
+    sync-batch-size: 100       # 同步批次大小
+    sync-retry-times: 3        # 同步重试次数
+
+# 服务间调用配置
+service:
+  finance:
+    url: http://localhost:8092
+  analytics:
+    url: http://localhost:8093
+
+# 日志配置
+logging:
+  level:
+    com.reward.audience: DEBUG
+    com.reward.common: DEBUG
+    org.springframework.web: DEBUG
+  pattern:
+    console: "[%X{traceId:-}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+    file: "[%X{traceId:-}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+  file:
+    name: logs/audience-service.log
+    max-size: 100MB
+    max-history: 30
+
+# 管理端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always

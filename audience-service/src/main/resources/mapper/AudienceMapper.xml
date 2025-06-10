@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.reward.audience.mapper.AudienceMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="AudienceMap" type="Audience">
+        <id column="id" property="id"/>
+        <result column="audience_id" property="audienceId"/>
+        <result column="nickname" property="nickname"/>
+        <result column="gender" property="gender"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 根据观众ID查询观众信息 -->
+    <select id="selectByAudienceId" parameterType="string" resultMap="AudienceMap">
+        SELECT * FROM audience WHERE audience_id = #{audienceId}
+    </select>
+
+    <!-- 插入观众信息 -->
+    <insert id="insert" parameterType="Audience">
+        INSERT INTO audience (audience_id, nickname, gender)
+        VALUES (#{audienceId}, #{nickname}, #{gender})
+    </insert>
+
+    <!-- 更新观众信息 -->
+    <update id="update" parameterType="Audience">
+        UPDATE audience
+        SET nickname = #{nickname}, gender = #{gender}, update_time = NOW()
+        WHERE audience_id = #{audienceId}
+    </update>
+
+    <!-- 检查观众是否存在 -->
+    <select id="existsByAudienceId" parameterType="string" resultType="int">
+        SELECT COUNT(1) FROM audience WHERE audience_id = #{audienceId}
+    </select>
+</mapper>
