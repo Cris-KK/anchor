@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -52,10 +53,14 @@ public class AudienceService {
         } catch (Exception e) {
             logger.error("查询观众标签失败: audienceId={}, error={}", audienceId, e.getMessage(), e);
             // 降级处理：返回友好提示
-            return ApiResponse.success(Map.of(
-                    "tagLevel", "unknown",
-                    "message", "标签服务暂时不可用，请稍后重试"
-            ));
+//            return ApiResponse.success(Map.of(
+//                    "tagLevel", "unknown",
+//                    "message", "标签服务暂时不可用，请稍后重试"
+//            ));
+            Map<String, Object> data = new HashMap<>();
+            data.put("tagLevel", "unknown");
+            data.put("message", "标签服务暂时不可用，请稍后重试");
+            return ApiResponse.success(data);
         }
     }
 
