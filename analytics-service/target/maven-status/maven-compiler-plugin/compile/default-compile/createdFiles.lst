@@ -1,0 +1,9 @@
+com\reward\analytics\service\AnalyticsService.class
+com\reward\analytics\service\impl\AnalyticsServiceImpl.class
+com\reward\analytics\config\RedisConfig.class
+com\reward\analytics\entity\AudienceTag.class
+com\reward\analytics\mapper\HourlyAnalysisMapper.class
+com\reward\analytics\mapper\AudienceTagMapper.class
+com\reward\analytics\entity\HourlyAnalysis.class
+com\reward\analytics\controller\AnalyticsController.class
+com\reward\analytics\AnalyticsServiceApplication.class

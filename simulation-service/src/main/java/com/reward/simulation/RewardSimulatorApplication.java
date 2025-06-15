@@ -25,9 +25,9 @@ public class RewardSimulatorApplication implements CommandLineRunner {
     // 打赏接口地址
     private static final String REQUEST_URL = "http://localhost:8091/audience/reward";
     // 每秒请求数
-    private static final int TARGET_RPS = 50;
+    private static final int TARGET_RPS = 20;
     // 模拟总时长（秒）
-    private static final int SIMULATION_DURATION_SECONDS = 60;
+    private static final int SIMULATION_DURATION_SECONDS = 30;
 
     // 存储观众ID和主播ID
     private final List<String> audienceIds = new ArrayList<>();

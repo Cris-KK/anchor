@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reward.analytics.mapper.RewardDataSyncMapper">
+    
+    <insert id="insert" parameterType="com.reward.analytics.entity.RewardDataSync">
+        INSERT INTO reward_data_sync (
+            record_id, audience_id, anchor_id, amount,
+            gender, reward_time, trace_id
+        ) VALUES (
+            #{recordId}, #{audienceId}, #{anchorId}, #{amount},
+            #{gender}, #{rewardTime}, #{traceId}
+        )
+    </insert>
+    
+    <select id="findUnprocessed" resultType="com.reward.analytics.entity.RewardDataSync">
+        SELECT * FROM reward_data_sync
+        WHERE processed = 0
+        ORDER BY reward_time ASC
+        LIMIT #{limit}
+    </select>
+    
+    <update id="updateProcessed">
+        UPDATE reward_data_sync
+        SET processed = 1
+        WHERE record_id = #{recordId}
+    </update>
+    
+    <select id="findByAudienceId" resultType="com.reward.analytics.entity.RewardDataSync">
+        SELECT * FROM reward_data_sync
+        WHERE audience_id = #{audienceId}
+        ORDER BY reward_time DESC
+    </select>
+    
+    <select id="findByTimeRange" resultType="com.reward.analytics.entity.RewardDataSync">
+        SELECT * FROM reward_data_sync
+        WHERE reward_time BETWEEN #{startTime} AND #{endTime}
+        ORDER BY reward_time ASC
+    </select>
+    
+</mapper> 

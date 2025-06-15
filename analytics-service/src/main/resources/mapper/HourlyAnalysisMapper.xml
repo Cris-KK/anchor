@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reward.analytics.mapper.HourlyAnalysisMapper">
+    
+    <insert id="insert" parameterType="com.reward.analytics.entity.HourlyAnalysis">
+        INSERT INTO hourly_analysis (
+            anchor_id, gender, hour_time, date_time, 
+            total_amount, total_count
+        ) VALUES (
+            #{anchorId}, #{gender}, #{hourTime}, #{dateTime},
+            #{totalAmount}, #{totalCount}
+        )
+        ON DUPLICATE KEY UPDATE
+          total_amount = total_amount + VALUES(total_amount),
+          total_count = total_count + VALUES(total_count)
+    </insert>
+    
+    <update id="update" parameterType="com.reward.analytics.entity.HourlyAnalysis">
+        UPDATE hourly_analysis
+        SET total_amount = #{totalAmount},
+            total_count = #{totalCount},
+            update_time = CURRENT_TIMESTAMP
+        WHERE anchor_id = #{anchorId}
+        AND gender = #{gender}
+        AND hour_time = #{hourTime}
+        AND date_time = #{dateTime}
+    </update>
+    
+    <select id="findByAnchorAndGenderAndHourAndDate" resultType="com.reward.analytics.entity.HourlyAnalysis">
+        SELECT * FROM hourly_analysis
+        WHERE anchor_id = #{anchorId}
+        AND gender = #{gender}
+        AND hour_time = #{hourTime}
+        AND date_time = #{dateTime}
+        FOR UPDATE
+    </select>
+    
+    <select id="findByAnchorAndGenderAndTimeRange" resultType="com.reward.analytics.entity.HourlyAnalysis">
+        SELECT * FROM hourly_analysis
+        WHERE anchor_id = #{anchorId}
+        AND gender = #{gender}
+        AND date_time BETWEEN #{startTime} AND #{endTime}
+        ORDER BY date_time, hour_time
+    </select>
+    
+    <update id="truncate">
+        TRUNCATE TABLE hourly_analysis
+    </update>
+    
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO hourly_analysis
+        (anchor_id, gender, hour_time, date_time, total_amount, total_count)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+           (#{item.anchorId}, #{item.gender}, #{item.hourTime}, #{item.dateTime}, #{item.totalAmount}, #{item.totalCount})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+          total_amount = total_amount + VALUES(total_amount),
+         total_count = total_count + VALUES(total_count)
+    </insert>
+
+</mapper>

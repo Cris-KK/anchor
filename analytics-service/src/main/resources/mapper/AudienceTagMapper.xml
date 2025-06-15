@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reward.analytics.mapper.AudienceTagMapper">
+    
+    <select id="findAll" resultType="com.reward.analytics.entity.AudienceTag">
+        SELECT * FROM audience_tag
+        ORDER BY total_amount DESC
+    </select>
+    
+    <select id="findByTagLevel" resultType="com.reward.analytics.entity.AudienceTag">
+        SELECT 
+            id, audience_id, tag_level, total_amount,
+            rank_percentage, last_calc_time, create_time
+        FROM audience_tag
+        WHERE tag_level = #{tagLevel}
+        ORDER BY total_amount DESC
+    </select>
+    
+    <select id="findByAudienceId" resultType="com.reward.analytics.entity.AudienceTag">
+        SELECT * FROM audience_tag
+        WHERE audience_id = #{audienceId}
+    </select>
+    
+    <insert id="insert" parameterType="com.reward.analytics.entity.AudienceTag">
+        INSERT INTO audience_tag (
+            audience_id, tag_level, total_amount, rank_percentage
+        ) VALUES (
+            #{audienceId}, #{tagLevel}, #{totalAmount}, #{rankPercentage}
+        )
+    </insert>
+    
+    <update id="update" parameterType="com.reward.analytics.entity.AudienceTag">
+        UPDATE audience_tag
+        SET total_amount = #{totalAmount},
+            last_calc_time = CURRENT_TIMESTAMP
+        WHERE audience_id = #{audienceId}
+    </update>
+    
+    <update id="updateTagLevel" parameterType="com.reward.analytics.entity.AudienceTag">
+        UPDATE audience_tag
+        SET tag_level = #{tagLevel},
+            rank_percentage = #{rankPercentage},
+            last_calc_time = CURRENT_TIMESTAMP
+        WHERE audience_id = #{audienceId}
+    </update>
+    
+    <update id="batchUpdate" parameterType="java.util.List">
+        UPDATE audience_tag
+        <trim prefix="SET" suffixOverrides=",">
+            <trim prefix="tag_level = CASE" suffix="END,">
+                <foreach collection="list" item="item">
+                    WHEN audience_id = #{item.audienceId} THEN #{item.tagLevel}
+                </foreach>
+            </trim>
+            <trim prefix="total_amount = CASE" suffix="END,">
+                <foreach collection="list" item="item">
+                    WHEN audience_id = #{item.audienceId} THEN #{item.totalAmount}
+                </foreach>
+            </trim>
+            <trim prefix="rank_percentage = CASE" suffix="END,">
+                <foreach collection="list" item="item">
+                    WHEN audience_id = #{item.audienceId} THEN #{item.rankPercentage}
+                </foreach>
+            </trim>
+            last_calc_time = CURRENT_TIMESTAMP
+        </trim>
+        WHERE audience_id IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item.audienceId}
+        </foreach>
+    </update>
+    
+    <update id="updateLastCalcTime">
+        UPDATE audience_tag
+        SET last_calc_time = CURRENT_TIMESTAMP
+        WHERE audience_id = #{audienceId}
+    </update>
+    
+</mapper> 
