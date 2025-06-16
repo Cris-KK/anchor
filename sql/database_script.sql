@@ -1,4 +1,3 @@
-
 -- ==================== DB1: 观众服务数据库 ====================
 DROP DATABASE IF EXISTS audience_db;
 CREATE DATABASE audience_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -173,7 +172,33 @@ INSERT INTO audience (audience_id, nickname, gender) VALUES
                                                          ('audience_003', '观众小张', 1),
                                                          ('audience_004', '观众小赵', 2),
                                                          ('audience_005', '观众小陈', 1);
+-- 批量插入更多主播数据（假设再插入95个主播）
+-- 先清空表，避免主键冲突
+TRUNCATE TABLE audience;
 
+-- 插入500个观众（audience_001 ~ audience_500）
+TRUNCATE TABLE audience;
+
+INSERT INTO audience (audience_id, nickname, gender)
+SELECT
+    CONCAT('audience_', LPAD(id, 3, '0')) as audience_id,
+    CONCAT('观众', id) as nickname,
+    (id % 2) + 1 as gender
+FROM (
+         SELECT @row := @row + 1 as id
+         FROM (SELECT 0 UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+         UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) t1,
+              (SELECT 0 UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+         UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) t2,
+              (SELECT 0 UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+         UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) t3,
+              (SELECT 0 UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+         UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) t4,
+              (SELECT 0 UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+         UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) t5,
+              (SELECT @row := 0) r
+         LIMIT 500
+     ) numbers;
 -- 批量插入更多观众数据
 INSERT INTO audience (audience_id, nickname, gender)
 SELECT
@@ -186,7 +211,7 @@ FROM (
              (SELECT 0 UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4) t2,
              (SELECT 0 UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4) t3,
              (SELECT @row := 0) r
-             LIMIT 95
+             LIMIT 495
      ) numbers;
 
 -- 插入财务和分析服务测试数据
