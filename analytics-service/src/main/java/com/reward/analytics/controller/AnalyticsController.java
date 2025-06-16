@@ -36,6 +36,11 @@ public class AnalyticsController {
         return analyticsService.getUserPortrait();
     }
 
+    @GetMapping("/portrait/{audienceId}")
+    public AudienceTag getAudiencePortrait(@PathVariable String audienceId) {
+        return analyticsService.getAudiencePortrait(audienceId);
+    }
+
     @PostMapping("/reward/sync")
     public void syncRewardData(@RequestBody RewardSyncDTO syncDTO) {
         log.info("接收到打赏数据同步请求: recordId={}, traceId={}", 

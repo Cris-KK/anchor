@@ -19,4 +19,6 @@ public interface AnalyticsService {
     
     // 刷新分析数据
     void refreshAnalyticsData();
+
+    AudienceTag getAudiencePortrait(String audienceId);
 } 

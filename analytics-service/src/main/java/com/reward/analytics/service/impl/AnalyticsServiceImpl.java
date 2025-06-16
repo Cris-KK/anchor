@@ -92,6 +92,26 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     @Override
+    public AudienceTag getAudiencePortrait(String audienceId) {
+        String cacheKey = String.format("audience_portrait:%s", audienceId);
+        
+        // 尝试从缓存获取
+        AudienceTag cachedResult = (AudienceTag) redisTemplate.opsForValue().get(cacheKey);
+        if (cachedResult != null) {
+            return cachedResult;
+        }
+        
+        // 从数据库查询
+        AudienceTag tag = audienceTagMapper.findByAudienceId(audienceId);
+        if (tag != null) {
+            // 存入缓存
+            redisTemplate.opsForValue().set(cacheKey, tag, userPortraitTtl, TimeUnit.SECONDS);
+        }
+        
+        return tag;
+    }
+
+    @Override
     @Transactional
     public void syncRewardData(RewardSyncDTO syncDTO) {
         try {
@@ -144,8 +164,18 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             // 2. 重新计算小时维度分析
             calculateHourlyAnalysis();
             
-            // 3. 重新计算观众画像
-            calculateUserPortrait();
+            // 3. 检查是否需要重新计算全局画像
+            Boolean needsRefresh = (Boolean) redisTemplate.opsForValue().get("user_portrait_needs_refresh");
+            if (Boolean.TRUE.equals(needsRefresh)) {
+                log.info("检测到全局画像需要刷新，开始重新计算");
+                calculateUserPortrait();
+                // 清除刷新标记
+                redisTemplate.delete("user_portrait_needs_refresh");
+                // 清除全局画像缓存
+                redisTemplate.delete("user_portrait");
+            } else {
+                log.info("全局画像无需刷新，跳过重新计算");
+            }
             
             log.info("分析数据刷新完成");
             
@@ -239,8 +269,12 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         // 重新计算所有观众的标签等级
         recalculateAllTagLevels();
         
-        // 清除观众画像缓存
-        redisTemplate.delete("user_portrait");
+        // 更新缓存策略：只更新单个观众的缓存，而不是删除所有缓存
+        String audienceCacheKey = String.format("audience_portrait:%s", sync.getAudienceId());
+        redisTemplate.delete(audienceCacheKey);
+        
+        // 设置一个标记，表示需要重新计算全局画像
+        redisTemplate.opsForValue().set("user_portrait_needs_refresh", true, 1, TimeUnit.HOURS);
     }
     
     private void recalculateAllTagLevels() {
